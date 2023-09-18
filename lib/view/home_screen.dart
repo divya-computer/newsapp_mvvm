@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:newsapp_mvvm/model/category_news_model.dart';
 import 'package:newsapp_mvvm/model/news_channel_headlines_model.dart';
+import 'package:newsapp_mvvm/view/category_screen.dart';
 import 'package:newsapp_mvvm/view_model/news_view_model.dart';
 
 class HomePage extends StatefulWidget {
@@ -34,7 +36,10 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.white,
         centerTitle: true,
         leading: IconButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => CategoriesScreen()));
+          },
           icon: Image.asset(
             'images/category_icon.png',
             height: 30,
@@ -208,6 +213,108 @@ class _HomePageState extends State<HomePage> {
                           ),
                         );
                       });
+                }
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: FutureBuilder<CategoriesNewsModel>(
+              future: newsViewModel.fetchCategoryNewsApi('General'),
+              builder: (BuildContext context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(
+                    child: SpinKitCircle(
+                      size: 50,
+                      color: Colors.blue,
+                    ),
+                  );
+                } else {
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: snapshot.data!.articles!.length,
+                    scrollDirection: Axis.vertical,
+                    itemBuilder: (context, index) {
+                      DateTime dateTime = DateTime.parse(snapshot
+                          .data!.articles![index].publishedAt
+                          .toString());
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 15.0),
+                        child: Row(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(15),
+                              child: CachedNetworkImage(
+                                imageUrl: snapshot
+                                    .data!.articles![index].urlToImage
+                                    .toString(),
+                                fit: BoxFit.cover,
+                                height: height * 0.18,
+                                width: width * 0.3,
+                                placeholder: (context, url) => Container(
+                                  child: Center(
+                                    child: SpinKitCircle(
+                                      size: 50,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
+                                errorWidget: (context, url, index) => Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              child: Container(
+                                height: height * 0.18,
+                                padding: EdgeInsets.only(left: 15),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      snapshot.data!.articles![index].title
+                                          .toString(),
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 15,
+                                        color: Colors.black54,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                      maxLines: 3,
+                                    ),
+                                    Spacer(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          snapshot.data!.articles![index]
+                                              .source!.name
+                                              .toString(),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 15,
+                                            color: Colors.black54,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                          maxLines: 3,
+                                        ),
+                                        Text(
+                                          format.format(dateTime),
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  );
                 }
               },
             ),
